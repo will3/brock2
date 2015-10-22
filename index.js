@@ -1,1 +1,3 @@
-module.exports = require('./src/game');
+module.exports = function() {
+  new require('./src/game');
+}

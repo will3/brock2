@@ -1,5 +1,5 @@
 {
-  "name": "brock-engine",
+  "name": "brock",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/will3/brock-engine.git"
+    "url": "git+https://github.com/will3/brock.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/will3/brock-engine/issues"
+    "url": "https://github.com/will3/brock/issues"
   },
-  "homepage": "https://github.com/will3/brock-engine#readme",
+  "homepage": "https://github.com/will3/brock#readme",
   "dependencies": {},
   "devDependencies": {
     "chai": "^3.4.0",
