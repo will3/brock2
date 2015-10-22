@@ -31,6 +31,10 @@ Component.prototype = {
 
   dettachComponent: function(component) {
     this._game.dettachComponent(component);
+  },
+
+  find: function(name) {
+    return this._game.find(name);
   }
 
 };
