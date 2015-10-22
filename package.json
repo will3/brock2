@@ -1,0 +1,26 @@
+{
+  "name": "brock-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/will3/brock-engine.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/will3/brock-engine/issues"
+  },
+  "homepage": "https://github.com/will3/brock-engine#readme",
+  "dependencies": {
+    "three": "^0.72.0"
+  },
+  "devDependencies": {
+    "chai": "^3.4.0",
+    "sinon": "^1.17.2"
+  }
+}
