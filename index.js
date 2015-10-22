@@ -1,3 +1,4 @@
 module.exports = function() {
-  new require('./src/game');
-}
+  var Game = require('./src/game');
+  return new Game();
+};
