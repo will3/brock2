@@ -78,4 +78,39 @@ describe('Game', function() {
       mock.verify();
     });
   });
+
+  describe('#name', function() {
+    it('should be able to find object', function() {
+      var game = new Game();
+      var object = new THREE.Object3D();
+      game.name(object, 'test');
+      expect(game.find('test')).to.equal(object);
+    });
+
+    it('should be able to retrieve name', function(){
+      var game = new Game();
+      var object = new THREE.Object3D();
+      game.name(object, 'test');
+      expect(game.nameOf(object)).to.equal('test');
+    });
+  });
+
+  describe('#removeObject', function() {
+    it('should destroy all components', function() {
+      var game = new Game();
+      var object = new THREE.Object3D();
+      game.register('test', {});
+      var component = game.attachComponent(object, 'test');
+      game.removeObject(object);
+      expect(game.getComponent(object, 'test')).to.be.undefined;
+    });
+
+    it('should remove from name map', function() {
+      var game = new Game();
+      var object = new THREE.Object3D();
+      game.name(object, 'main');
+      game.removeObject(object);
+      expect(game.find('main')).to.be.undefined;
+    });
+  });
 });

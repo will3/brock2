@@ -3,6 +3,7 @@ var types = {};
 
 var Game = function() {
   this.componentMap = {};
+  this.nameMap = {};
 };
 
 Game.prototype = {
@@ -96,6 +97,42 @@ Game.prototype = {
         component.tick();
       }
     });
+  },
+
+  name: function(object, name) {
+    this.nameMap[name] = object;
+    if (!object.userData) {
+      object.userData = {};
+    }
+    object.userData.name = name;
+  },
+
+  nameOf: function(object) {
+    return (object.userData || {}).name;
+  },
+
+  find: function(name) {
+    return this.nameMap[name];
+  },
+
+  removeObject: function(object) {
+    var components = this.componentMap[object.id];
+    if (components !== undefined) {
+      for (var type in components) {
+        var component = components[type];
+        component.destroy();
+      }
+      delete this.componentMap[object.id];
+    }
+
+    var name = object.userData.name;
+    if (name !== undefined) {
+      delete this.nameMap[name];
+    }
+
+    if (!!object.parent) {
+      object.parent.remove(object);
+    }
   }
 };
 
