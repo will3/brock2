@@ -17,7 +17,7 @@ Component.prototype = {
   tick: function() {
 
   },
-  
+
   lateTick: function() {
 
   },
@@ -26,20 +26,36 @@ Component.prototype = {
 
   },
 
-  hasComponent: function(type) {
-    return this._game.hasComponent(this.object, type);
+  hasComponent: function(object, type) {
+    if (typeof object === 'string') {
+      type = object;
+      object = this.object;
+    }
+    return this._game.hasComponent(object, type);
   },
 
-  getComponent: function(type) {
-    return this._game.getComponent(this.object, type);
+  getComponent: function(object, type) {
+    if (typeof object === 'string') {
+      type = object;
+      object = this.object;
+    }
+    return this._game.getComponent(object, type);
   },
 
-  attachComponent: function(type) {
-    this._game.attachComponent(this.object, type);
+  attachComponent: function(object, type) {
+    if (typeof object === 'string') {
+      type = object;
+      object = this.object;
+    }
+    return this._game.attachComponent(object, type);
   },
 
-  dettachComponent: function(type) {
-    this._game.dettachComponent(this.object, type);
+  dettachComponent: function(object, type) {
+    if (typeof object === 'string') {
+      type = object;
+      object = this.object;
+    }
+    this._game.dettachComponent(object, type);
   }
 
 };

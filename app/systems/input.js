@@ -38,10 +38,10 @@ module.exports = function($window) {
     },
 
     lateTick: function() {
-      this.mousedowns = [];
-      this.mouseups = [];
-      this.mouseenter = false;
-      this.mouseleave = false;
+      mousedowns = [];
+      mouseups = [];
+      mouseenter = false;
+      mouseleave = false;
     },
 
     destroy: function() {

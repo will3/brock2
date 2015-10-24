@@ -17,13 +17,8 @@ document.body.appendChild(renderer.domElement);
 
 var scene = new THREE.Scene();
 
-var geometry = new THREE.BoxGeometry(2, 2, 2);
-var material = new THREE.MeshBasicMaterial({
-  color: 0x000000
-});
-var object = new THREE.Mesh(geometry, material);
-
-scene.add(object);
+// var object = new THREE.Mesh();
+// scene.add(object);
 
 var render = function() {
   requestAnimationFrame(render);
@@ -32,6 +27,13 @@ var render = function() {
 render();
 
 game.component('rotateCamera', require('./components/rotatecamera'));
+game.component('blockModel', require('./components/blockmodel'));
+game.component('shipGenerator', require('./components/shipgenerator'));
+game.component('rigidBody', require('./components/rigidbody'));
+game.component('ship', require('./components/ship'));
+
 game.system('input', require('./systems/input'));
 
 game.attachComponent(camera, 'rotateCamera');
+var shipGenerator = game.attachComponent(scene, 'shipGenerator');
+shipGenerator.num = 1;
