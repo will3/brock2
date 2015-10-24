@@ -1,138 +1,154 @@
 var Component = require('./component');
-var types = {};
+var Injector = require('./injector');
+var World = require('./world');
 
 var Game = function() {
+  this.injector = new Injector();
   this.componentMap = {};
   this.nameMap = {};
+  this.world = new World();
+  this.frameRate = 48.0;
+  this.systems = {};
+  //auto start
+
+  this.start();
+  var self = this;
+  var interval = function() {
+    self.tick();
+    setTimeout(interval, 1000 / self.frameRate);
+  };
+  interval();
+};
+
+var extend = function(a, b) {
+  for (var i in b) {
+    a[i] = b[i];
+  }
+  return a;
+};
+
+var isArray = function(value) {
+  return Object.prototype.toString.call(value) === '[object Array]';
+};
+
+var getFactoryFunction = function(constructor, argArray) {
+  var deps = [null].concat(argArray);
+  return constructor.bind.apply(constructor, deps);
 };
 
 Game.prototype = {
   constructor: Game,
 
-  attachComponent: function(object, component) {
-    //create component if passed in string
-    if (typeof component === 'string') {
-      component = new types[component]();
+  //declare component
+  component: function(type, args) {
+    var constructor, deps;
+
+    if (isArray(args)) {
+      constructor = args[args.length - 1];
+      args.pop();
+      deps = args;
+    } else if (typeof args === 'function') {
+      constructor = args;
+      deps = constructor.$inject;
     }
 
-    var components = this.componentMap[object.id];
-    if (!components) {
-      components = this.componentMap[object.id] = {};
+    var func = function() {
+      var component = Object.create(Component.prototype);
+
+      var argArray = Array.prototype.slice.call(arguments);
+      var factoryFunction = getFactoryFunction(constructor, argArray);
+      var custom = new factoryFunction();
+
+      return extend(component, custom);
+    };
+
+    this.injector.bind(type, func, deps, Injector.Scope.Normal);
+  },
+
+  //declare system
+  system: function(type, args) {
+    var constructor, deps;
+    if (typeof args === 'array') {
+      constructor = args[args.length - 1];
+      args.pop();
+      deps = args;
+    } else if (typeof args === 'function') {
+      constructor = args;
+      deps = constructor.$inject;
+    } else {
+      throw new Error('expected array or function, but got: ' + args);
     }
 
-    if (components[component.type] !== undefined) {
-      throw new Error('component of type: ' + component.type + 'already exists in object');
-    }
+    var self = this;
+    var func = function() {
+      var argArray = Array.prototype.slice.call(arguments);
+      var factoryFunction = getFactoryFunction(constructor, argArray);
+      var system = new factoryFunction();
 
-    component.object = object;
+      self.systems[type] = system;
+      return system;
+    };
+
+    this.injector.bind(type, func, deps, Injector.Scope.Singleton);
+  },
+
+  attachComponent: function(object, type) {
+    var component = this.injector.get(type);
     component._game = this;
-
-    components[component.type] = component;
-
+    component.object = object;
+    component.type = type;
+    this.world.attachComponent(object, component);
     return component;
   },
 
-  dettachComponent: function(component) {
-    var components = this.componentMap[component.object.id];
-    if (!components) {
-      return;
-    }
-    component.destroy();
-    if (typeof component === 'string') {
-      delete components[component];
-    } else {
-      delete components[component.type];
-    }
+  dettachComponent: function(object, type) {
+    this.world.dettachComponent(object, type);
+  },
+
+  hasComponent: function(object, type) {
+    return this.world.hasComponent(object, type);
   },
 
   getComponent: function(object, type) {
-    var components = this.componentMap[object.id];
-    if (!components) {
-      return undefined;
-    }
-    return components[type];
+    return this.world.getComponent(object, type);
   },
 
   getComponents: function(object) {
-    return this.componentMap[object.id];
+    return this.world.getComponents(object);
   },
 
-  register: function(type, constructor) {
-    if (typeof constructor === 'function') {
-      types[type] = function() {
-        var component = new Component();
-        component.type = type;
-        var props = new constructor();
-        for (var i in props) {
-          component[i] = props[i];
-        }
-        return component;
+  dettachComponents: function(object) {
+    this.world.dettachComponents(object);
+  },
+
+  start: function() {
+    //load default systems
+    this.system('$window', require('./systems/window'));
+  },
+
+  tick: function() {
+    for (var type in this.systems) {
+      var system = this.systems[type];
+      if (!system._started) {
+        if (system.start !== undefined) system.start();
+        system._started = true;
       }
-    } else {
-      //merge object
-      types[type] = function() {
-        var component = new Component();
-        component.type = type;
-        for (var i in constructor) {
-          component[i] = constructor[i];
-        }
-        return component;
-      }
+      if (system.tick !== undefined) system.tick();
     }
-  },
-
-  tick: function(scene) {
-    var self = this;
-    scene.traverse(function(object) {
-      var components = self.componentMap[object.id];
-      if (!components) {
-        return;
+    this.world.traverse(function(component) {
+      if (!component._started) {
+        component.start();
+        component._started = true;
       }
-      for (var type in components) {
-        var component = components[type];
-        if (!component.started) {
-          component.start();
-          component.started = true;
-        }
-        component.tick();
-      }
+      component.tick();
     });
-  },
-
-  name: function(object, name) {
-    this.nameMap[name] = object;
-    if (!object.userData) {
-      object.userData = {};
+    for (var type in this.systems) {
+      var system = this.systems[type];
+      if (system.lateTick !== undefined) system.lateTick();
     }
-    object.userData.name = name;
-  },
-
-  nameOf: function(object) {
-    return (object.userData || {}).name;
-  },
-
-  find: function(name) {
-    return this.nameMap[name];
-  },
-
-  removeObject: function(object) {
-    var components = this.componentMap[object.id];
-    if (components !== undefined) {
-      for (var type in components) {
-        var component = components[type];
-        component.destroy();
-      }
-      delete this.componentMap[object.id];
-    }
-
-    var name = object.userData.name;
-    if (name !== undefined) {
-      delete this.nameMap[name];
-    }
-
-    if (!!object.parent) {
-      object.parent.remove(object);
-    }
+    this.world.traverse(function(component) {
+      component.lateTick();
+    });
   }
 };
 
