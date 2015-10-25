@@ -16,7 +16,9 @@
     "url": "https://github.com/will3/brock/issues"
   },
   "homepage": "https://github.com/will3/brock#readme",
-  "dependencies": {},
+  "dependencies": {
+    "tic": "^1.0.0"
+  },
   "devDependencies": {
     "chai": "^3.4.0",
     "sinon": "^1.17.2",

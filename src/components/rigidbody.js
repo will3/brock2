@@ -1,6 +1,9 @@
+var EventDispatcher = require('../eventdispatcher');
 var THREE = require('three');
 
-var RigidBody = function() {
+var RigidBody = function($collision) {
+  this.collision = $collision;
+
   this.velocity = new THREE.Vector3();
   this.acceleration = new THREE.Vector3();
   this.friction = 0.98;
@@ -13,10 +16,22 @@ var RigidBody = function() {
   this.rotationInertia = Number.POSITIVE_INFINITY;
 
   this.radius = null;
+  //don't change after start
+  //use setGroup instead
+  this.group = null;
+  this.mask = [];
+
+  this.hasCollision = false;
 };
+
+RigidBody.$inject = ['$collision'];
 
 RigidBody.prototype = {
   constructor: RigidBody,
+
+  start: function() {
+    this.collision.addBody(this);
+  },
 
   tick: function() {
     this.velocity.add(this.acceleration);
@@ -39,12 +54,30 @@ RigidBody.prototype = {
     this.rotationAcceleration.set(0, 0, 0);
   },
 
-  applyForce: function(force) {
+  destroy: function() {
+    this.collision.removeBody(this);
+  },
+
+  setGroup: function(value) {
+    this.collision.removeBody(this);
+    this.group = value;
+    this.collision.addBody(this);
+  },
+
+  applyForce: function(force, immediately) {
+    immediately = immediately || false;
     //immovable
     if (this.mass === Number.POSITIVE_INFINITY) {
       return;
     }
+
     var acceleration = force.clone().multiplyScalar(1 / this.mass);
+
+    if (immediately) {
+      this.velocity.add(acceleration);
+      return;
+    }
+
     this.acceleration.add(acceleration);
   },
 
@@ -62,7 +95,15 @@ RigidBody.prototype = {
     this.rotationAcceleration.x += acceleration.x;
     this.rotationAcceleration.y += acceleration.y;
     this.rotationAcceleration.z += acceleration.z;
+  },
+
+  _onCollision: function(body, result) {
+    result.body = body;
+    result.object = body.object;
+    this.dispatchEvent('collision', result);
   }
 };
+
+EventDispatcher.prototype.apply(RigidBody.prototype);
 
 module.exports = RigidBody;

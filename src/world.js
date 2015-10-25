@@ -10,15 +10,22 @@ World.prototype = {
     if (components === undefined) {
       components = this.componentMap[object.id] = {};
     }
-    components[component.type] = component;
+    components[component.id] = component;
   },
 
-  dettachComponent: function(object, type) {
+  dettachComponent: function(object, component) {
     var components = this.componentMap[object.id];
     if (components === undefined) {
       return;
     }
-    delete components[type];
+
+    if (typeof component === 'string') {
+      component = this.getComponent(component);
+    }
+
+    component.destroy();
+    
+    delete components[component.id];
   },
 
   dettachComponents: function(object) {
@@ -26,8 +33,8 @@ World.prototype = {
     if (components === undefined) {
       return;
     }
-    for (var type in components) {
-      this.dettachComponent(object, type);
+    for (var id in components) {
+      this.dettachComponent(object, components[id]);
     }
   },
 
@@ -36,7 +43,13 @@ World.prototype = {
     if (components === undefined) {
       return false;
     }
-    return components[type] !== undefined;
+    for (var id in components) {
+      var component = components[id];
+      if (component.type === type) {
+        return true;
+      }
+    }
+    return false;
   },
 
   getComponent: function(object, type) {
@@ -44,18 +57,33 @@ World.prototype = {
     if (components === undefined) {
       return undefined;
     }
-    return components[type];
+    for (var id in components) {
+      var component = components[id];
+      if (component.type === type) {
+        return component;
+      }
+    }
+    return undefined;
   },
 
-  getComponents: function(object) {
-    return this.componentMap[object.id];
+  getComponents: function(object, type) {
+    var components = this.componentMap[object.id];
+
+    var list = [];
+    for (var id in components) {
+      var component = components[id];
+      if (type === undefined || component.type === type) {
+        list.push(component);
+      }
+    }
+    return list;
   },
 
   traverse: function(callback) {
     for (var id in this.componentMap) {
       var components = this.componentMap[id];
-      for (var type in components) {
-        var component = components[type];
+      for (var id in components) {
+        var component = components[id];
         callback(component);
       }
     }

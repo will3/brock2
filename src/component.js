@@ -42,6 +42,14 @@ Component.prototype = {
     return this._game.getComponent(object, type);
   },
 
+  getComponents: function(object, type) {
+    if (typeof object === 'string') {
+      type = object;
+      object = this.object;
+    }
+    return this._game.getComponents(object, type);
+  },
+
   attachComponent: function(object, type) {
     if (typeof object === 'string') {
       type = object;
@@ -56,6 +64,14 @@ Component.prototype = {
       object = this.object;
     }
     this._game.dettachComponent(object, type);
+  },
+
+  dettachComponents: function(object) {
+    this._game.dettachComponents(object || this.object);
+  },
+
+  removeObject: function(object) {
+    this._game.removeObject(object || this.object);
   }
 
 };

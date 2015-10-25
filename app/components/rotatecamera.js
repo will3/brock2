@@ -1,7 +1,7 @@
 var THREE = require('three');
 var clamp = require('../utils/math').clamp;
 
-var RotateCamera = function($window, input) {
+var RotateCamera = function($window, $input) {
   this.isDrag = false;
   this.lastX = 0;
   this.lastY = 0;
@@ -17,10 +17,10 @@ var RotateCamera = function($window, input) {
   this._mouseenter = null;
   this._mouseleave = null;
   this.window = $window;
-  this.input = input;
+  this.input = $input;
 };
 
-RotateCamera.$inject = ['$window', 'input'];
+RotateCamera.$inject = ['$window', '$input'];
 
 RotateCamera.prototype = {
   constructor: RotateCamera,

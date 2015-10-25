@@ -14,8 +14,9 @@ var Game = function() {
   this.start();
   var self = this;
   var interval = function() {
-    self.tick();
-    setTimeout(interval, 1000 / self.frameRate);
+    var dt = 1000 / self.frameRate;
+    self.tick(dt);
+    setTimeout(interval, dt);
   };
   interval();
 };
@@ -53,7 +54,7 @@ Game.prototype = {
     }
 
     var func = function() {
-      var component = Object.create(Component.prototype);
+      var component = new Component();
 
       var argArray = Array.prototype.slice.call(arguments);
       var factoryFunction = getFactoryFunction(constructor, argArray);
@@ -92,6 +93,12 @@ Game.prototype = {
     this.injector.bind(type, func, deps, Injector.Scope.Singleton);
   },
 
+  value: function(type, value) {
+    this.injector.bind(type, function() {
+      return value;
+    }, [], Injector.Scope.Singleton);
+  },
+
   attachComponent: function(object, type) {
     var component = this.injector.get(type);
     component._game = this;
@@ -101,8 +108,8 @@ Game.prototype = {
     return component;
   },
 
-  dettachComponent: function(object, type) {
-    this.world.dettachComponent(object, type);
+  dettachComponent: function(object, component) {
+    this.world.dettachComponent(object, component);
   },
 
   hasComponent: function(object, type) {
@@ -113,39 +120,53 @@ Game.prototype = {
     return this.world.getComponent(object, type);
   },
 
-  getComponents: function(object) {
-    return this.world.getComponents(object);
+  getComponents: function(object, type) {
+    return this.world.getComponents(object, type);
   },
 
   dettachComponents: function(object) {
     this.world.dettachComponents(object);
   },
 
-  start: function() {
-    //load default systems
-    this.system('$window', require('./systems/window'));
+  removeObject: function(object) {
+    object.parent.remove(object);
+    this.dettachComponents(object);
   },
 
-  tick: function() {
+  start: function() {
+    var self = this;
+    this.value('$game', this);
+    //load default systems
+    this.system('$window', require('./systems/window'));
+    this.system('$time', require('./systems/time'));
+    this.system('$input', require('./systems/input'));
+    this.system('$collision', require('./systems/collision'));
+    this.component('rigidBody', require('./components/rigidbody'));
+  },
+
+  tick: function(dt) {
     for (var type in this.systems) {
       var system = this.systems[type];
       if (!system._started) {
         if (system.start !== undefined) system.start();
         system._started = true;
       }
-      if (system.tick !== undefined) system.tick();
+      if (system.tick !== undefined) system.tick(dt);
     }
+
     this.world.traverse(function(component) {
       if (!component._started) {
         component.start();
         component._started = true;
       }
-      component.tick();
+      component.tick(dt);
     });
+
     for (var type in this.systems) {
       var system = this.systems[type];
       if (system.lateTick !== undefined) system.lateTick();
     }
+
     this.world.traverse(function(component) {
       component.lateTick();
     });

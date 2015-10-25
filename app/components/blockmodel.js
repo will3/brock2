@@ -1,29 +1,72 @@
 var mesher = require('../voxel/monotone').mesher;
 var ndarray = require('ndarray');
 var THREE = require('three');
+var assert = require('../utils/assert');
 
-var Ship = function() {
+var BlockModel = function() {
   this.num = Math.floor(Math.random() * Math.pow(2, 15));
   this.map = ndarray(new Array(), [5, 5, 1]);
   this.rigidBody = null;
   this.min = null;
   this.max = null;
+  this.springFactor = 1.0;
+  this.dampFactor = 0.95;
+
+  this.collisionListener = null;
+
+  this.chunkNeedsUpdate = false;
 };
 
-Ship.prototype = {
-  constructor: Ship,
+BlockModel.prototype = {
+  constructor: BlockModel,
 
   start: function() {
-    if (!this.object instanceof THREE.Mesh) {
-      throw 'must attach to THREE.Mesh';
-    }
+    assert(this.object instanceof THREE.Mesh);
 
-    this.rigidBody = this.attachComponent('rigidBody');
+    this.rigidBody = this.getComponent('rigidBody');
+
+    assert.exists(this.rigidBody, 'rigidBody');
+
+    var self = this;
+    this.collisionListener = function(collision) {
+      var body = collision.body;
+      var object = collision.object;
+      var distance = collision.distance;
+
+      //ship
+      if (body.group === 'ship') {
+        var rigidBody = body.getComponent('rigidBody');
+
+        var total = (self.rigidBody.radius + rigidBody.radius);
+
+        var force = new THREE.Vector3()
+          .subVectors(self.object.position, object.position)
+          .multiplyScalar((total - distance) * self.springFactor);
+
+        self.rigidBody.applyForce(force, true);
+        self.rigidBody.velocity.multiplyScalar(self.dampFactor);
+      }
+    };
+
+    this.rigidBody.addEventListener('collision', this.collisionListener);
 
     this.loadMapWithNum(this.num);
     this.updateMesh();
     this.updateBounds();
-    this.updateRigidBody();
+    this.updateBody();
+  },
+
+  tick: function() {
+    if (this.chunkNeedsUpdate) {
+      this.updateMesh();
+      this.updateBounds();
+      this.updateBody();
+      this.chunkNeedsUpdate = false;
+    }
+  },
+
+  destroy: function() {
+    this.rigidBody.removeEventListener('collision', this.collisionListener);
   },
 
   updateMesh: function() {
@@ -35,7 +78,7 @@ Ship.prototype = {
     var map = ndarray(new Array(), [7, 7, 7]);
     for (var x = 0; x < 5; x++) {
       for (var z = 0; z < 5; z++) {
-        var bit = this.map.get(x, 0, z);
+        var bit = this.map.get(z, 0, x);
         if (bit === 1) {
           map.set(x + 1, 3, z + 1, bit);
         }
@@ -80,7 +123,7 @@ Ship.prototype = {
     this.max = max;
   },
 
-  updateRigidBody: function() {
+  updateBody: function() {
     var count = 0;
     this.traverse(function(b) {
       count++;
@@ -88,9 +131,9 @@ Ship.prototype = {
 
     this.rigidBody.mass = count;
     var diff = this.max.clone().sub(this.min);
-    this.rigidBody.radius = diff.length() / 2;
     this.rigidBody.rotationInertia =
       0.4 * this.rigidBody.mass * this.rigidBody.radius;
+    this.rigidBody.radius = diff.length() / 2;
   },
 
   traverse: function(callback) {
@@ -119,7 +162,16 @@ Ship.prototype = {
       this.map.set(x, 0, z, bit);
       this.map.set(x2, 0, z, bit);
     }
+  },
+
+  getCoordWithWorldPos: function(pos) {
+    var coord = this.object.worldToLocal(pos)
+      .add(new THREE.Vector3(3.5, 3.5, 3.5));
+    coord.x = Math.round(coord.x);
+    coord.y = Math.round(coord.y);
+    coord.z = Math.round(coord.z);
+    return coord;
   }
 };
 
-module.exports = Ship;
+module.exports = BlockModel;
