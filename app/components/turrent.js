@@ -9,13 +9,13 @@ var Turrent = function() {
 
   this.target = null;
 
-  this.cooldown = 200;
+  this.cooldown = 400;
 
   this.ammo = 0;
 
-  this.clipSize = 1;
+  this.clipSize = 6;
 
-  this.reloadTime = 200;
+  this.reloadTime = 1200;
 
   this._cooldownTimer = 0;
 
@@ -69,10 +69,18 @@ Turrent.prototype = {
     var scene = getRoot(this.object);
     scene.add(object);
     var ammo = this.attachComponent(object, this.ammoType);
-    ammo.direction = new THREE.Vector3().subVectors(
+
+    var diff = new THREE.Vector3().subVectors(
       this.target.object.position,
       this.object.position
-    ).normalize();
+    );
+
+    var leading = diff.length() / ammo.speed;
+    var projected = new THREE.Vector3().addVectors(
+      this.target.object.position,
+      this.target.getComponent('rigidBody').velocity.clone().multiplyScalar(leading)
+    );
+    ammo.direction = projected.sub(this.object.position).normalize();
     ammo.ownerId = this.object.id;
 
     var radius = this.rigidBody.radius || 0;

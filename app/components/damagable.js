@@ -1,4 +1,6 @@
 var assert = require('../utils/assert');
+var THREE = require('three');
+var getRoot = require('../utils/getroot');
 
 var Damagable = function() {
   this.rigidBody = null;
@@ -37,17 +39,25 @@ Damagable.prototype = {
         return;
       }
 
-      // self.applyDamage(damage, coord);
-
       self.removeObject(object);
+
+      // var guiObject = new THREE.Object3D();
+      // guiObject.position.copy(self.object.getWorldPosition());
+      // var scene = getRoot(self.object);
+      // scene.add(guiObject);
+
+      // var guiText = self.attachComponent(guiObject, 'guiText');
+      // guiText.text = 'ow';
+
+      // var selfDestruct = self.attachComponent(guiObject, 'selfDestruct');
+      // selfDestruct.time = 1000;
+
     };
 
     this.rigidBody.addEventListener('collision', this.collisionHandler);
   },
 
   applyDamage: function(damage, coord) {
-    // var velocity = damage.getComponent('rigidBody').velocity;
-    // var position = damage.object.position;
     var map = this.blockModel.map;
     map.set(coord.x, coord.y, coord.z, 0);
     this.blockModel.chunkNeedsUpdate = true;

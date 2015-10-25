@@ -1,24 +1,21 @@
 var Component = require('./component');
 var Injector = require('./injector');
 var World = require('./world');
+var EventDispatcher = require('./eventdispatcher');
 
 var Game = function() {
   this.injector = new Injector();
   this.componentMap = {};
   this.nameMap = {};
   this.world = new World();
-  this.frameRate = 48.0;
+  this.frameRate = 36.0;
   this.systems = {};
+  this.timeScale = 1.0;
   //auto start
 
   this.start();
-  var self = this;
-  var interval = function() {
-    var dt = 1000 / self.frameRate;
-    self.tick(dt);
-    setTimeout(interval, dt);
-  };
-  interval();
+
+  this.startInterval();
 };
 
 var extend = function(a, b) {
@@ -40,6 +37,16 @@ var getFactoryFunction = function(constructor, argArray) {
 Game.prototype = {
   constructor: Game,
 
+  startInterval: function() {
+    var self = this;
+    var interval = function() {
+      var frameTime = 1000 / self.frameRate;
+      self.tick(frameTime * self.timeScale);
+      setTimeout(interval, frameTime);
+    };
+    interval();
+  },
+
   //declare component
   component: function(type, args) {
     var constructor, deps;
@@ -51,6 +58,8 @@ Game.prototype = {
     } else if (typeof args === 'function') {
       constructor = args;
       deps = constructor.$inject;
+    } else {
+      throw new Error('expected array or function for args, but got: ', args);
     }
 
     var func = function() {
@@ -139,7 +148,8 @@ Game.prototype = {
     //load default systems
     this.system('$window', require('./systems/window'));
     this.system('$time', require('./systems/time'));
-    this.system('$input', require('./systems/input'));
+    this.system('$mouse', require('./systems/mouse'));
+    this.system('$keyboard', require('./systems/keyboard'));
     this.system('$collision', require('./systems/collision'));
     this.component('rigidBody', require('./components/rigidbody'));
   },
@@ -170,7 +180,13 @@ Game.prototype = {
     this.world.traverse(function(component) {
       component.lateTick();
     });
+  },
+
+  onRender: function() {
+    this.dispatchEvent('render');
   }
 };
+
+EventDispatcher.prototype.apply(Game.prototype);
 
 module.exports = Game;

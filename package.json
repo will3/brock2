@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/will3/brock#readme",
   "dependencies": {
+    "keycode": "^2.1.0",
+    "mousetrap": "^1.5.3",
     "tic": "^1.0.0"
   },
   "devDependencies": {

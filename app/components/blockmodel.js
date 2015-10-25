@@ -1,57 +1,32 @@
 var mesher = require('../voxel/monotone').mesher;
+var edger = require('../voxel/edger');
 var ndarray = require('ndarray');
 var THREE = require('three');
 var assert = require('../utils/assert');
 
 var BlockModel = function() {
-  this.num = Math.floor(Math.random() * Math.pow(2, 15));
   this.map = ndarray(new Array(), [5, 5, 1]);
   this.rigidBody = null;
   this.min = null;
   this.max = null;
-  this.springFactor = 1.0;
-  this.dampFactor = 0.95;
-
-  this.collisionListener = null;
 
   this.chunkNeedsUpdate = false;
+  this.outline = true;
+
+  this.objMesh = null;
+  this.objEdges = null;
 };
 
 BlockModel.prototype = {
   constructor: BlockModel,
 
   start: function() {
-    assert(this.object instanceof THREE.Mesh);
-
     this.rigidBody = this.getComponent('rigidBody');
 
     assert.exists(this.rigidBody, 'rigidBody');
 
-    var self = this;
-    this.collisionListener = function(collision) {
-      var body = collision.body;
-      var object = collision.object;
-      var distance = collision.distance;
-
-      //ship
-      if (body.group === 'ship') {
-        var rigidBody = body.getComponent('rigidBody');
-
-        var total = (self.rigidBody.radius + rigidBody.radius);
-
-        var force = new THREE.Vector3()
-          .subVectors(self.object.position, object.position)
-          .multiplyScalar((total - distance) * self.springFactor);
-
-        self.rigidBody.applyForce(force, true);
-        self.rigidBody.velocity.multiplyScalar(self.dampFactor);
-      }
-    };
-
-    this.rigidBody.addEventListener('collision', this.collisionListener);
-
-    this.loadMapWithNum(this.num);
     this.updateMesh();
+    this.updateEdges();
     this.updateBounds();
     this.updateBody();
   },
@@ -59,20 +34,42 @@ BlockModel.prototype = {
   tick: function() {
     if (this.chunkNeedsUpdate) {
       this.updateMesh();
+      this.updateEdges();
       this.updateBounds();
       this.updateBody();
       this.chunkNeedsUpdate = false;
     }
   },
 
-  destroy: function() {
-    this.rigidBody.removeEventListener('collision', this.collisionListener);
+  updateEdges: function() {
+    if (this.objEdges !== null) {
+      this.object.remove(this.objEdges);
+    }
+
+    var result = edger(this.map);
+    var geometry = new THREE.Geometry();
+    var material = new THREE.LineBasicMaterial({
+      color: 0xeeeeee
+    });
+
+    geometry.vertices = result.vertices.map(function(v) {
+      var vertice = new THREE.Vector3(v[0], v[2], v[1])
+      .add(new THREE.Vector3(-2.5, -0.5, -2.5));
+      return vertice;
+    });
+
+    this.objEdges = new THREE.LineSegments(geometry, material);
+    this.object.add(this.objEdges);
   },
 
   updateMesh: function() {
+    if (this.objMesh !== null) {
+      this.object.remove(this.objMesh);
+    }
+
     var geometry = new THREE.Geometry();
     var material = new THREE.MeshBasicMaterial({
-      color: 0x000000
+      color: 0xBBBBBB
     });
 
     var map = ndarray(new Array(), [7, 7, 7]);
@@ -96,8 +93,8 @@ BlockModel.prototype = {
       return face;
     });
 
-    this.object.geometry = geometry;
-    this.object.material = material;
+    this.objMesh = new THREE.Mesh(geometry, material);
+    this.object.add(this.objMesh);
   },
 
   updateBounds: function() {
@@ -150,17 +147,6 @@ BlockModel.prototype = {
           block: block
         });
       }
-    }
-  },
-
-  loadMapWithNum: function(num) {
-    for (var i = 0; i < 15; i++) {
-      var bit = (num & Math.pow(2, i)) === Math.pow(2, i) ? 1 : 0;
-      var x = i % 3;
-      var z = Math.floor(i / 3);
-      x2 = 5 - x - 1;
-      this.map.set(x, 0, z, bit);
-      this.map.set(x2, 0, z, bit);
     }
   },
 

@@ -33,23 +33,28 @@ RigidBody.prototype = {
     this.collision.addBody(this);
   },
 
-  tick: function() {
+  tick: function(dt) {
+    var timeScale = dt / 1000 * 48.0;
+
     this.velocity.add(this.acceleration);
-    this.velocity.multiplyScalar(this.friction);
-    this.object.position.add(this.velocity);
+
+    var friction = Math.pow(this.friction, timeScale);
+    this.velocity.multiplyScalar(friction);
+    this.object.position.add(this.velocity.clone().multiplyScalar(timeScale));
     this.acceleration.set(0, 0, 0);
 
     this.rotationSpeed.x += this.rotationAcceleration.x;
     this.rotationSpeed.y += this.rotationAcceleration.y;
     this.rotationSpeed.z += this.rotationAcceleration.z;
 
-    this.rotationSpeed.x *= this.rotationFriction;
-    this.rotationSpeed.y *= this.rotationFriction;
-    this.rotationSpeed.z *= this.rotationFriction;
+    var rotationFriction = Math.pow(this.rotationFriction, timeScale);
+    this.rotationSpeed.x *= rotationFriction;
+    this.rotationSpeed.y *= rotationFriction;
+    this.rotationSpeed.z *= rotationFriction;
 
-    this.object.rotation.x += this.rotationSpeed.x;
-    this.object.rotation.y += this.rotationSpeed.y;
-    this.object.rotation.z += this.rotationSpeed.z;
+    this.object.rotation.x += this.rotationSpeed.x * timeScale;
+    this.object.rotation.y += this.rotationSpeed.y * timeScale;
+    this.object.rotation.z += this.rotationSpeed.z * timeScale;
 
     this.rotationAcceleration.set(0, 0, 0);
   },
