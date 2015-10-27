@@ -1,0 +1,41 @@
+    @font-face {
+        font-family: Munro;
+        src: url(assets/fonts/MunroSmall.ttf);
+    }
+    
+    html {
+        overflow: hidden;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#a22d1e+0,120b28+100 */
+        background: #a22d1e;
+        /* Old browsers */
+        background: -moz-linear-gradient(top, #a22d1e 0%, #120b28 100%);
+        /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #a22d1e), color-stop(100%, #120b28));
+        /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(top, #a22d1e 0%, #120b28 100%);
+        /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #a22d1e 0%, #120b28 100%);
+        /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #a22d1e 0%, #120b28 100%);
+        /* IE10+ */
+        background: linear-gradient(to bottom, #a22d1e 0%, #120b28 100%);
+        /* W3C */
+        filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#a22d1e', endColorstr='#120b28', GradientType=0);
+        /* IE6-9 */
+    }
+    
+    div {
+        font-family: Munro, Roboto;
+    }
+    
+    .unselectable {
+        -moz-user-select: none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
+    }
