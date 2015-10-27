@@ -1,9 +1,9 @@
-var UIState = function() {
+var BoxManager = function() {
   this.boxables = {};
 };
 
-UIState.prototype = {
-  constructor: UIState,
+BoxManager.prototype = {
+  constructor: BoxManager,
 
   addBoxable: function(boxable) {
     this.boxables[boxable.id] = boxable;
@@ -29,4 +29,4 @@ UIState.prototype = {
   }
 };
 
-module.exports = UIState;
+module.exports = BoxManager;

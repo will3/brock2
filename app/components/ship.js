@@ -12,11 +12,11 @@ var Ship = function() {
   this.yAmount = 0;
 
   this.accelerateForce = 0.1;
-  this.rollAcceleration = 0.05;
+  this.rollAcceleration = 0.02;
   this.rollSpeed = 0.0;
   this.rollFriction = 0.98;
   this.rollFrictionCurve = 0.1;
-  this.yawRate = 0.2;
+  this.yawRate = 0.4;
   this.ySpeed = 0.1;
 
   this.forward = new THREE.Vector3(0, 0, 1);
@@ -66,6 +66,11 @@ Ship.prototype = {
     this.rigidBody.addEventListener('collision', this.collisionListener);
 
     this.attachComponent('boxable');
+    var clickable = this.attachComponent('clickable');
+    var self = this;
+    clickable.getObjectFunc = function(){
+      return self.blockModel.objMesh
+    };
   },
 
   tick: function(dt) {

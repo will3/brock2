@@ -28,8 +28,9 @@ Fleet.prototype = {
 
         var pilot = this.attachComponent(object, 'pilot');
         pilot.orbitTarget = this.target;
-        pilot.orbitDistance = Math.random() * 10 + 5;
-        pilot.orbitY = Math.random() * 20 - 10;
+        pilot.orbitDistance = 10;
+        // pilot.orbitY = Math.random() * 20 - 10;
+        pilot.orbitY = 0;
         this.pilots[pilot.id] = pilot;
 
         var offset = new THREE.Vector3(

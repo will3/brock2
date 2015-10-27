@@ -1,9 +1,9 @@
 var toScreenPosition = require('../utils/toscreenposition');
 var assert = require('../utils/assert');
 
-var Boxable = function(cache, uiState) {
+var Boxable = function(cache, boxManager) {
   this.cache = cache;
-  this.uiState = uiState;
+  this.boxManager = boxManager;
 
   this.camera = null;
   this.renderer = null;
@@ -12,7 +12,7 @@ var Boxable = function(cache, uiState) {
   this.y = null;
 };
 
-Boxable.$inject = ['cache', 'uiState'];
+Boxable.$inject = ['cache', 'boxManager'];
 
 Boxable.prototype = {
   constructor: Boxable,
@@ -24,7 +24,7 @@ Boxable.prototype = {
     assert.exists(this.camera, 'camera');
     assert.exists(this.renderer, 'renderer');
 
-    this.uiState.addBoxable(this);
+    this.boxManager.addBoxable(this);
   },
 
   tick: function() {
@@ -35,7 +35,7 @@ Boxable.prototype = {
   },
 
   destroy: function() {
-    this.uiState.removeBoxable(this);
+    this.boxManager.removeBoxable(this);
   }
 };
 

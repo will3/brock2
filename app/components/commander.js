@@ -1,10 +1,11 @@
 var THREE = require('three');
 var getMouseRaycaster = require('../utils/getmouseraycaster');
 
-var Commander = function(cache, $mouse, uiState) {
+var Commander = function(cache, $mouse, boxManager, mouseEventManager) {
   this.cache = cache;
   this.mouse = $mouse;
-  this.uiState = uiState;
+  this.boxManager = boxManager;
+  this.mouseEventManager = mouseEventManager;
 
   this.camera = null;
   this.scene = null;
@@ -23,7 +24,7 @@ var Commander = function(cache, $mouse, uiState) {
   this.startDrag = null;
 };
 
-Commander.$inject = ['cache', '$mouse', 'uiState'];
+Commander.$inject = ['cache', '$mouse', 'boxManager', 'mouseEventManager'];
 
 Commander.prototype = {
   constructor: Commander,
@@ -63,7 +64,12 @@ Commander.prototype = {
         var diff = new Date().getTime() - this._lastMouseDown;
         if (diff < this.clickThreshold) {
           mouseClicked = true;
-          //clicked
+          //handle click
+          var clicked = this.mouseEventManager.getMouseovers();
+          if (clicked.length > 0) {
+            console.log(clicked);
+          }
+          
           var result = raycaster.intersectObject(this.ground, true);
           var point = result[0].point;
 
@@ -77,21 +83,24 @@ Commander.prototype = {
       if (this.box.visible && !mouseClicked) {
         //handle box selection
         var self = this;
-        var pilots = this.uiState.getInBox(this.box).map(function(boxable) {
-          return self.getComponent(boxable.object, 'pilot');
-        });
+        var boxed = this.boxManager.getInBox(this.box);
+        if (boxed.length > 0) {
+          var pilots = boxed.map(function(boxable) {
+            return self.getComponent(boxable.object, 'pilot');
+          });
 
-        this.clearSelection();
+          this.clearSelection();
 
-        pilots.forEach(function(pilot) {
-          var waypoint = self.attachComponent(self.scene, 'waypoint');
-          var waypath = self.attachComponent(self.scene, 'waypath');
-          self.selection[pilot.object.id] = {
-            pilot: pilot,
-            waypoint: waypoint,
-            waypath: waypath
-          };
-        });
+          pilots.forEach(function(pilot) {
+            var waypoint = self.attachComponent(self.scene, 'waypoint');
+            var waypath = self.attachComponent(self.scene, 'waypath');
+            self.selection[pilot.object.id] = {
+              pilot: pilot,
+              waypoint: waypoint,
+              waypath: waypath
+            };
+          });
+        }
       }
     }
 

@@ -46,8 +46,10 @@ game.component('waypath', require('./components/waypath'));
 game.component('commander', require('./components/commander'));
 game.component('yIndicator', require('./components/yindicator'));
 game.component('boxable', require('./components/boxable'));
+game.component('clickable', require('./components/clickable'));
 
-game.system('uiState', require('./systems/uistate'));
+game.system('boxManager', require('./systems/boxmanager'));
+game.system('mouseEventManager', require('./systems/mouseEventManager'));
 
 game.value('cache', {
   materials: {},

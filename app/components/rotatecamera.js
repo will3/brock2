@@ -7,9 +7,9 @@ var RotateCamera = function($window, $mouse, $keyboard) {
   this.lastY = 0;
   this.camera = null;
   this.target = new THREE.Vector3();
-  this.rotation = new THREE.Euler(-Math.PI / 4, Math.PI / 4, 0);
+  this.rotation = new THREE.Euler(-Math.PI * 0.4 , Math.PI / 4, 0);
   this.rotation.order = 'YXZ';
-  this.distance = 150;
+  this.distance = 100;
   this.moveSpeed = 5;
   this.cameraSpringFactor = 0.5;
 
